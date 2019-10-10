@@ -65,8 +65,26 @@ private:
 	    static constexpr size_t IMPLICIT_INITIAL_INDEX_SIZE = 4;
 
 #   ifndef BOOST_SWEATER_AUX_ALIGNED_MALLOC
-        static void * malloc( std::size_t   const size ) noexcept { return boost::alignment::aligned_alloc( 16, size ); }
-        static void   free  ( void        * const ptr  ) noexcept { return boost::alignment::aligned_free ( ptr      ); }
+        static void * malloc( std::size_t size ) noexcept
+        {
+#       if defined( __EMSCRIPTEN__ ) && !defined( NDEBUG )
+            size = ( ( size + 15 ) / 16 ) * 16;
+            volatile auto p = std::malloc( size );
+            auto p2 = std::malloc( size );
+            std::free( p );
+            return p2;
+#       else
+            return boost::alignment::aligned_alloc( 16, size );
+#       endif
+        }
+        static void free( void * const ptr ) noexcept
+        {
+#       if defined( __EMSCRIPTEN__ ) && !defined( NDEBUG )
+            std::free( ptr );
+#       else
+            return boost::alignment::aligned_free( ptr );
+#       endif
+        }
 #   endif // BOOST_SWEATER_AUX_ALIGNED_MALLOC
     }; // struct queue_traits
 
