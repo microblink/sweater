@@ -1765,6 +1765,7 @@ private:
         } // !HMP
 
         events::caller_join_begin( use_caller_thread );
+#   if BOOST_SWEATER_USE_CALLER_THREAD
         if ( use_caller_thread )
         {
             completion_barrier.spin_wait();
@@ -1773,6 +1774,9 @@ private:
         {
             completion_barrier.wait();
         }
+#   else
+        completion_barrier.wait();
+#   endif
         events::caller_join_end();
 
         events::spread_end( dispatched_parts, use_caller_thread );
