@@ -847,6 +847,11 @@ private:
         }
 
 #   if BOOST_SWEATER_USE_CALLER_THREAD
+#       ifdef __clang__
+          __attribute__(( no_sanitize( "implicit-integer-truncation" ) ))
+          __attribute__(( no_sanitize( "implicit-integer-sign-change" ) ))
+          __attribute__(( no_sanitize( "undefined" ) ))
+#       endif
         BOOST_NOINLINE void spin_wait() noexcept
         {
             BOOST_ASSERT( spin_wait_ );
