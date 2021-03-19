@@ -414,7 +414,16 @@ private:
             cpu_set_t value_;
         }; // class affinity_mask
 
-        void join  () noexcept BOOST_NOTHROW_LITE { BOOST_VERIFY( pthread_join  ( handle_, nullptr ) == 0 ); handle_ = {}; }
+        void join  () noexcept BOOST_NOTHROW_LITE
+        {
+            // on emscripten workers posing as threads get destroyed before the destructors of global variables in main
+            // thread is invoked, thus causing attempt to join with non-existing thread, which causes crash
+        #ifndef __EMSCRIPTEN__
+            BOOST_VERIFY( pthread_join  ( handle_, nullptr ) == 0 );
+        #endif
+            handle_ = {};
+        }
+
         void detach() noexcept BOOST_NOTHROW_LITE { BOOST_VERIFY( pthread_detach( handle_          ) == 0 ); handle_ = {}; }
         auto get_id() const noexcept { return handle_; }
 
