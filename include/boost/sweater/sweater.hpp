@@ -23,8 +23,11 @@
 #   define BOOST_SWEATER_IMPL single_threaded
 #	include "impls/single_threaded.hpp"
 #elif defined( __APPLE__ ) && !defined( BOOST_SWEATER_IMPL )
-#   define BOOST_SWEATER_IMPL apple
-#	include "impls/apple.hpp"
+// #   define BOOST_SWEATER_IMPL apple
+// #	include "impls/apple.hpp"
+#   undef  BOOST_SWEATER_IMPL
+#   define BOOST_SWEATER_IMPL generic
+#	include "impls/generic.hpp"
 #elif defined( _WIN32_unimplemented ) && !defined( BOOST_SWEATER_IMPL )
 #   define BOOST_SWEATER_IMPL windows
 #	include "impls/windows.hpp"

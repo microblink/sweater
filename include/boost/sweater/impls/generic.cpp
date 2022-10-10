@@ -361,7 +361,7 @@ bool shop::bind_worker
 
 bool shop::bind_worker_to_cpu( hardware_concurrency_t const worker_index, unsigned const cpu_id ) noexcept
 {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(__APPLE__)
     (void)worker_index; (void)cpu_id;
     return false;
 #else

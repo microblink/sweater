@@ -68,7 +68,7 @@ extern struct hardware_concurrency_max_t
 #ifdef __GNUC__
     __attribute__(( pure ))
 #endif // GCC&co.
-    operator hardware_concurrency_t() const noexcept { return value; }
+    operator hardware_concurrency_t() const noexcept { return get_hardware_concurrency_max(); }
 } const hardware_concurrency_max;
 
 
