@@ -156,7 +156,7 @@ public:
     template <typename F>
     static auto dispatch( F && work )
     {
-        using result_t = typename std::result_of<F()>::type;
+        using result_t = typename std::invoke_result_t<F>;
         std::promise<result_t> promise;
         std::future<result_t> future( promise.get_future() );
         fire_and_forget
