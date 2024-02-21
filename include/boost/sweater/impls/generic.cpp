@@ -124,7 +124,9 @@ auto shop::worker_loop( [[ maybe_unused ]] hardware_concurrency_t const worker_i
     static std::byte const & dummy_reference_object{ reinterpret_cast<std::byte const &>( __ImageBase ) };
 #   else
     using global_offset_t = std::int32_t;
-    static std::byte const dummy_reference_object{};
+
+    // This must not be const! const_cast from an original const object is an undefined behavior.
+    static std::byte dummy_reference_object{};
 #   endif
     auto const shop_offset{ static_cast<global_offset_t>( reinterpret_cast<std::byte const *>( this ) - &dummy_reference_object ) };
     struct shop_and_worker_t
@@ -143,7 +145,7 @@ auto shop::worker_loop( [[ maybe_unused ]] hardware_concurrency_t const worker_i
         [=]() noexcept
         {
 #       if BOOST_SWEATER_EXACT_WORKER_SELECTION
-            auto & parent{ const_cast< shop & >( *reinterpret_cast<shop const *>( &dummy_reference_object + shop_and_worker.shop_offset ) ) };
+            auto & parent{ const_cast< shop & >( *reinterpret_cast< shop const * >( &dummy_reference_object + shop_and_worker.shop_offset ) ) };
             auto const worker_index{ static_cast<hardware_concurrency_t>( shop_and_worker.worker_index ) };
 #       else
             auto & parent{ *p_shop };

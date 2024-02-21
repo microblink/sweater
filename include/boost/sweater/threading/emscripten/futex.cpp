@@ -15,6 +15,8 @@
 //------------------------------------------------------------------------------
 #include "../futex.hpp"
 
+#include <Utils/disable_warnings.hpp>
+
 #include <cmath>
 
 #include <emscripten/threading.h>
@@ -36,10 +38,16 @@ void futex::wake_one(                                              ) const noexc
 void futex::wake    ( hardware_concurrency_t const waiters_to_wake ) const noexcept { emscripten_futex_wake( void_cast( this ), waiters_to_wake ); }
 void futex::wake_all(                                              ) const noexcept { emscripten_futex_wake( void_cast( this ), INT_MAX         ); }
 
+MB_DISABLE_WARNING_PUSH
+MB_DISABLE_WARNING_CLANG( "-Wunknown-warning-option" )
+MB_DISABLE_WARNING_CLANG( "-Wnan-infinity-disabled" )
+
 void futex::wait_if_equal( value_type const desired_value ) const noexcept
 {
     emscripten_futex_wait( void_cast( this ), desired_value, INFINITY );
 };
+
+MB_DISABLE_WARNING_POP
 
 //------------------------------------------------------------------------------
 } // namespace thrd_lite
