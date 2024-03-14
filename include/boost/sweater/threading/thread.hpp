@@ -26,10 +26,12 @@
 #include "hardware_concurrency.hpp"
 
 #include <boost/assert.hpp>
+
 #ifndef BOOST_NO_EXCEPTIONS
 #include <stdexcept>
 #endif // BOOST_NO_EXCEPTIONS
 
+#include <exception>  // std::terminate
 #include <memory>
 #include <mutex>
 #include <type_traits>
