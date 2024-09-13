@@ -83,20 +83,35 @@ namespace
         // RAM limit /sys/fs/cgroup/memory.limit_in_bytes
         // swap limt /sys/fs/cgroup/memory.memsw.limit_in_bytes
 
-#   ifdef __aarch64__
         // https://github.com/moby/moby/issues/20770#issuecomment-1559152307
-        auto const fd{ ::open( "/sys/fs/cgroup/cpu.max", O_RDONLY, 0 ) };
-        char value_pair[ 128 ]; value_pair[ 0 ] = 0;
-        BOOST_VERIFY( ::read( fd, value_pair, sizeof( value_pair ) ) < signed( sizeof( value_pair ) ) );
-        BOOST_VERIFY( ::close( fd ) == 0 );
 
-        char * cfs_period_ptr;
-        auto const cfs_quota { std::strtol( value_pair    , &cfs_period_ptr, 10 ) };
-        auto const cfs_period{ std::strtol( cfs_period_ptr, nullptr        , 10 ) };
-#   else
-        auto const cfs_quota { read_int( "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"  ) };
-        auto const cfs_period{ read_int( "/sys/fs/cgroup/cpu/cpu.cfs_period_us" ) };
-#   endif
+        // LMG note 2024-09-13: It seems that newer linux distros always have `/sys/fs/cgroup/cpu.max`
+        //                      Because of this, just always use the cgroup v2 format.
+        //                      https://docs.kernel.org/admin-guide/cgroup-v2.html
+
+        int cfs_quota { 0 };
+        int cfs_period{ 0 };
+
+        auto const fd{ ::open( "/sys/fs/cgroup/cpu.max", O_RDONLY, 0 ) };
+
+        if ( fd != -1 )
+        {
+            // New cgroup v2 format
+            char value_pair[ 128 ]; value_pair[ 0 ] = 0;
+            BOOST_VERIFY( ::read( fd, value_pair, sizeof( value_pair ) ) < signed( sizeof( value_pair ) ) );
+            BOOST_VERIFY( ::close( fd ) == 0 );
+
+            char * cfs_period_ptr;
+            cfs_quota  = static_cast< int >( std::strtol( value_pair    , &cfs_period_ptr, 10 ) );
+            cfs_period = static_cast< int >( std::strtol( cfs_period_ptr, nullptr        , 10 ) );
+        }
+        else
+        {
+            // Fall back to old cgroup v1 format
+            cfs_quota  = read_int( "/sys/fs/cgroup/cpu/cpu.cfs_quota_us"  );
+            cfs_period = read_int( "/sys/fs/cgroup/cpu/cpu.cfs_period_us" );
+        }
+
         if ( ( cfs_quota > 0 ) && ( cfs_period > 0 ) )
         {
             // Docker allows non-whole core quota assignments - use some sort of
